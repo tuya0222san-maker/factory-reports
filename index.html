@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Үйлдвэрийн тайлан</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Classic beige palette */
+    --c-bg: #F5EFE3;
+    --c-bg-soft: #EDE5D2;
+    --c-card: #FBF7EE;
+    --c-card-warm: #F5EFE3;
+    --c-border: #D9CDB6;
+    --c-border-soft: #E5DCC6;
+    --c-text: #2B241A;
+    --c-text-soft: #5C5247;
+    --c-muted: #8C8270;
+    --c-accent: #6B4A2B;        /* dark walnut */
+    --c-accent-dark: #4A3320;
+    --c-accent-soft: #A88962;
+    --c-success: #5E7D4F;
+    --c-warn: #B5793A;
+    --c-bad: #8B3A2D;
+    --c-line: #C8B89A;
+    --shadow-sm: 0 1px 2px rgba(74,51,32,0.04);
+    --shadow-md: 0 2px 8px rgba(74,51,32,0.06);
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--c-bg); }
+  body {
+    font-family: 'Calibri', 'Trebuchet MS', -apple-system, sans-serif;
+    color: var(--c-text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 40px;
+  }
+  
+  /* Header */
+  .hdr {
+    background: var(--c-card-warm);
+    padding: 28px 24px 22px;
+    border-bottom: 1px solid var(--c-line);
+    position: relative;
+  }
+  .hdr::after {
+    content: ''; position: absolute;
+    left: 24px; right: 24px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--c-accent) 0%, transparent 100%);
+  }
+  .hdr-tag {
+    font-size: 10px; letter-spacing: 0.22em;
+    color: var(--c-accent); font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .hdr-tseh {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 36px; font-weight: 600;
+    letter-spacing: -0.01em; line-height: 1;
+    color: var(--c-text);
+  }
+  .hdr-meta {
+    font-size: 13px; color: var(--c-text-soft);
+    margin-top: 6px; font-weight: 500;
+  }
+  
+  .page { padding: 22px 18px; }
+  
+  /* Action cards */
+  .actions { display: flex; flex-direction: column; gap: 10px; }
+  .action {
+    background: var(--c-card);
+    border: 1px solid var(--c-border-soft);
+    border-radius: var(--radius);
+    padding: 18px 18px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: flex; align-items: center; gap: 16px;
+    text-align: left; width: 100%;
+    font-family: inherit; font-size: inherit;
+    box-shadow: var(--shadow-sm);
+  }
+  .action:active {
+    transform: translateY(1px);
+    border-color: var(--c-accent);
+    background: var(--c-card-warm);
+  }
+  .action-num {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--c-line);
+    background: var(--c-bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 600;
+    color: var(--c-accent);
+  }
+  .action-title {
+    font-size: 16px; font-weight: 600;
+    margin-bottom: 2px; color: var(--c-text);
+    letter-spacing: -0.005em;
+  }
+  .action-sub {
+    font-size: 13px;
+    color: var(--c-muted);
+  }
+  .action-arrow {
+    color: var(--c-accent);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+  }
+  
+  /* Form */
+  .field { margin-bottom: 18px; }
+  .label {
+    display: block; font-size: 12px;
+    font-weight: 600; margin-bottom: 7px;
+    color: var(--c-text-soft);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .label-suffix {
+    color: var(--c-muted); font-weight: 400;
+    text-transform: none; letter-spacing: 0;
+    font-size: 11px;
+  }
+  .input, .select {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid var(--c-border);
+    border-radius: 6px;
+    background: var(--c-card);
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--c-text);
+    transition: all 0.15s;
+  }
+  .input:focus, .select:focus {
+    outline: none;
+    border-color: var(--c-accent);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(107,74,43,0.10);
+  }
+  .input[type="number"], .input[type="text"][inputmode="numeric"] {
+    font-feature-settings: "tnum";
+    font-weight: 600;
+    font-size: 17px;
+  }
+  /* Hide number input spinners */
+  .input[type="number"]::-webkit-outer-spin-button,
+  .input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .input[type="number"] { -moz-appearance: textfield; }
+  .input::placeholder { color: #BDB29A; font-weight: 400; }
+  
+  /* Buttons */
+  .btn {
+    display: block; width: 100%;
+    padding: 16px 20px;
+    border: 1px solid var(--c-accent);
+    border-radius: 6px;
+    font-family: inherit; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary { background: var(--c-accent); color: var(--c-card); }
+  .btn-primary:active {
+    background: var(--c-accent-dark);
+    transform: translateY(1px);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--c-accent);
+    border-color: var(--c-line);
+  }
+  
+  .back {
+    background: transparent; border: none;
+    color: var(--c-accent);
+    font-size: 13px; font-weight: 500;
+    padding: 0; margin-bottom: 18px;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    letter-spacing: 0.02em;
+  }
+  
+  .h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; font-weight: 600;
+    letter-spacing: -0.01em; margin-bottom: 4px;
+    line-height: 1.1;
+  }
+  .h2-sub {
+    font-size: 13px; color: var(--c-text-soft);
+    margin-bottom: 26px;
+  }
+  
+  /* Decorative divider */
+  .divider {
+    display: flex; align-items: center;
+    gap: 12px; margin: 22px 0;
+    color: var(--c-muted); font-size: 11px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--c-line);
+  }
+  
+  /* Success */
+  .result-card {
+    background: var(--c-card);
+    border: 1px solid var(--c-border-soft);
+    border-radius: var(--radius);
+    padding: 30px 22px;
+    margin-bottom: 18px;
+    text-align: center;
+    position: relative;
+  }
+  .result-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 60px; height: 1px;
+    background: var(--c-accent);
+  }
+  .result-icon {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--c-success); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin: 0 auto 14px;
+    font-weight: 600;
+  }
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px; font-weight: 600;
+    color: var(--c-text); margin-bottom: 4px;
+  }
+  .result-sub { font-size: 13px; color: var(--c-text-soft); font-style: italic; }
+  
+  /* Stats */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .stat {
+    background: var(--c-card);
+    border: 1px solid var(--c-border-soft);
+    border-radius: 6px;
+    padding: 14px 14px;
+  }
+  .stat-label {
+    font-size: 10px; color: var(--c-muted);
+    letter-spacing: 0.1em; font-weight: 600;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 600;
+    color: var(--c-accent);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .stat-value.success { color: var(--c-success); }
+  .stat-value.warn { color: var(--c-warn); }
+  .stat-wide { grid-column: 1 / -1; }
+  
+  /* Advice card */
+  .advice {
+    background: var(--c-text);
+    color: var(--c-card);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-top: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .advice::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 3px; height: 100%;
+    background: var(--c-accent-soft);
+  }
+  .advice-tag {
+    font-size: 10px; letter-spacing: 0.22em;
+    color: var(--c-accent-soft); font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .advice-h {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 600;
+    line-height: 1.3; margin-bottom: 10px;
+  }
+  .advice-body {
+    font-size: 14px; color: rgba(251,247,238,0.78);
+    line-height: 1.6;
+  }
+  .advice-big {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--c-card-warm);
+    font-size: 32px; font-weight: 600;
+    letter-spacing: -0.02em;
+    display: inline;
+  }
+  
+  /* Last day card */
+  .lastday {
+    margin-top: 16px; padding: 18px;
+    border: 1px solid var(--c-border-soft);
+    border-radius: var(--radius);
+    background: var(--c-card);
+  }
+  .lastday-h {
+    font-size: 11px; color: var(--c-muted);
+    margin-bottom: 12px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--c-border-soft);
+  }
+  .lastday-row {
+    display: flex; justify-content: space-between;
+    font-size: 14px; padding: 6px 0;
+    color: var(--c-text-soft);
+  }
+  .lastday-row b { color: var(--c-text); font-weight: 600; }
+  
+  /* Screens */
+  .screen { display: none; animation: fadeIn 0.25s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px;
+    left: 50%; transform: translateX(-50%);
+    background: var(--c-text); color: var(--c-card);
+    padding: 14px 22px; border-radius: 6px;
+    font-size: 14px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 100; max-width: 90%;
+  }
+  .toast.show {
+    opacity: 1; pointer-events: auto;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  
+  /* Demo banner */
+  .demo-banner {
+    background: var(--c-bg-soft);
+    color: var(--c-text-soft);
+    text-align: center;
+    padding: 7px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--c-border-soft);
+  }
+  
+  /* Mode toggle (demo only) */
+  .mode-toggle {
+    position: fixed;
+    top: 6px; right: 8px;
+    background: var(--c-text);
+    color: var(--c-card);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    z-index: 200;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<div id="demo-banner" class="demo-banner" style="display:none">DEMO · өгөгдөл хадгалагдахгүй</div>
+<button class="mode-toggle" onclick="toggleMode()" id="modeBtn" style="display:none">ажилтны QR</button>
+
+<header class="hdr">
+  <div class="hdr-tag">ҮЙЛДВЭРИЙН ӨДРИЙН ТАЙЛАН</div>
+  <div class="hdr-tseh" id="tseh-name">Ангилах</div>
+  <div class="hdr-meta" id="kompani-meta">Хавт шонхор · 2026 оны 4-р сар</div>
+</header>
+
+<main class="page">
+  <!-- HOME — ажилтны QR (2 сонголт) -->
+  <div class="screen active" id="screen-home">
+    <div class="actions">
+      <button class="action" onclick="goto('submit')">
+        <div class="action-num">I</div>
+        <div style="flex:1">
+          <div class="action-title">Мэдээлэл илгээх</div>
+          <div class="action-sub">Өдрийн тайлан бөглөх</div>
+        </div>
+        <div class="action-arrow">→</div>
+      </button>
+      <button class="action" onclick="goto('view')">
+        <div class="action-num">II</div>
+        <div style="flex:1">
+          <div class="action-title">Гүйцэтгэлийн мэдээлэл</div>
+          <div class="action-sub">Сарын төлөв ба зөвлөгөө</div>
+        </div>
+        <div class="action-arrow">→</div>
+      </button>
+    </div>
+  </div>
+  
+  <!-- HOME — админ QR (засварын) -->
+  <div class="screen" id="screen-home-admin">
+    <div class="h2" style="margin-top:8px">Алдаа залруулах</div>
+    <div class="h2-sub">Цех ба огноогоо сонгож утгуудыг шинэчилнэ үү</div>
+    <div class="field">
+      <label class="label">Цех</label>
+      <select class="select" id="admin-tseh" onchange="loadAdminDates()">
+        <option value="">— цех сонгох —</option>
+        <option>Ангилах</option><option>Угаах</option>
+        <option>Хялгас ялгах</option><option>Будах</option>
+        <option>Ээрэх 26.2</option><option>Ээрэх 14.5/1</option>
+        <option>Нэхэх</option>
+        <option>Нэхэхийн гүйцэтгэн боловсруулалт</option>
+        <option>Нэхэхийн бэлэн бүтээгдэхүүн</option>
+        <option>Принт</option>
+        <option>Гар сүлжих</option><option>Автомат сүлжих</option>
+        <option>Оёх</option><option>ОЁХ 409-р анги</option>
+        <option>Сүлжихийн гүйцэтгэн боловсруулалт</option>
+        <option>Зөөлөн оёдол</option><option>Ширмэл оёдол</option>
+        <option>Дорнод ноос</option>
+      </select>
+    </div>
+    <div class="field" id="admin-date-field" style="display:none">
+      <label class="label">Засах өдөр</label>
+      <select class="select" id="admin-date" onchange="loadAdminData()">
+        <option value="">— өдрөө сонгох —</option>
+      </select>
+    </div>
+    <div id="admin-form" style="display:none">
+      <div class="divider">Утгууд</div>
+      <div class="field">
+        <label class="label">Гүйцэтгэл <span class="label-suffix">— ширхэг</span></label>
+        <input class="input" type="text" inputmode="numeric" id="e-guits" oninput="cleanNum(this)">
+      </div>
+      <div class="field">
+        <label class="label">Гарц <span class="label-suffix">— %</span></label>
+        <input class="input" type="text" inputmode="decimal" id="e-garts" oninput="cleanNum(this,true)">
+      </div>
+      <div class="field">
+        <label class="label">Машин цаг <span class="label-suffix">— %</span></label>
+        <input class="input" type="text" inputmode="decimal" id="e-mashin" oninput="cleanNum(this,true)">
+      </div>
+      <div class="field">
+        <label class="label">Чанар <span class="label-suffix">— %</span></label>
+        <input class="input" type="text" inputmode="decimal" id="e-chanar" oninput="cleanNum(this,true)">
+      </div>
+      <div class="field">
+        <label class="label">Ажилласан хүн</label>
+        <input class="input" type="text" inputmode="numeric" id="e-hun" oninput="cleanNum(this)">
+      </div>
+      <div class="field">
+        <label class="label">Эцсийн үлдэгдэл <span class="label-suffix">— ширхэг</span></label>
+        <input class="input" type="text" inputmode="numeric" id="e-uld" oninput="cleanNum(this)">
+      </div>
+      <div class="field">
+        <label class="label">Цехийн бичил орчин</label>
+        <input class="input" type="text" id="e-orchin">
+      </div>
+      <div class="field">
+        <label class="label">Тайлбар</label>
+        <input class="input" type="text" id="e-tailbar">
+      </div>
+      <button class="btn btn-primary" onclick="saveEdit()">Засвар хадгалах</button>
+    </div>
+  </div>
+  
+  <!-- SUBMIT -->
+  <div class="screen" id="screen-submit">
+    <button class="back" onclick="goto('home')">← буцах</button>
+    <div class="h2">Мэдээлэл илгээх</div>
+    <div class="h2-sub">Өдрийн тайлан бөглөх</div>
+    
+    <div class="field">
+      <label class="label">Огноо</label>
+      <input class="input" type="date" id="submit-date">
+    </div>
+    <div class="field">
+      <label class="label">Гүйцэтгэл <span class="label-suffix">— ширхэг</span></label>
+      <input class="input" type="text" inputmode="numeric" id="f-guits" oninput="cleanNum(this)">
+    </div>
+    <div class="field">
+      <label class="label">Гарц <span class="label-suffix">— %</span></label>
+      <input class="input" type="text" inputmode="decimal" id="f-garts" oninput="cleanNum(this,true)">
+    </div>
+    <div class="field">
+      <label class="label">Машин цаг ашиглалт <span class="label-suffix">— %</span></label>
+      <input class="input" type="text" inputmode="decimal" id="f-mashin" oninput="cleanNum(this,true)">
+    </div>
+    <div class="field">
+      <label class="label">Чанар <span class="label-suffix">— %</span></label>
+      <input class="input" type="text" inputmode="decimal" id="f-chanar" oninput="cleanNum(this,true)">
+    </div>
+    <div class="field">
+      <label class="label">Ажилласан хүний тоо</label>
+      <input class="input" type="text" inputmode="numeric" id="f-hun" oninput="cleanNum(this)">
+    </div>
+    <div class="field">
+      <label class="label">Эцсийн үлдэгдэл <span class="label-suffix">— ширхэг</span></label>
+      <input class="input" type="text" inputmode="numeric" id="f-uld" oninput="cleanNum(this)">
+    </div>
+    <div class="field">
+      <label class="label">Цехийн бичил орчин</label>
+      <input class="input" type="text" id="f-orchin">
+    </div>
+    <div class="field">
+      <label class="label">Тайлбар <span class="label-suffix">— заавал биш</span></label>
+      <input class="input" type="text" id="f-tailbar">
+    </div>
+    <button class="btn btn-primary" onclick="submitForm()">Хадгалах</button>
+  </div>
+  
+  <!-- SUCCESS -->
+  <div class="screen" id="screen-success">
+    <div class="result-card">
+      <div class="result-icon">✓</div>
+      <div class="result-title">Амжилттай хадгалагдлаа</div>
+      <div class="result-sub">Танд баярлалаа</div>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Өдрийн биелэлт</div>
+        <div class="stat-value success" id="r-day-pct">101.2%</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Сарын үйлдвэрлэл</div>
+        <div class="stat-value" id="r-month-pct">22.9%</div>
+      </div>
+      <div class="stat stat-wide">
+        <div class="stat-label">Сарын өссөн дүн</div>
+        <div class="stat-value" id="r-osson">5,725 / 25,000</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="goto('home')">Дуусгах</button>
+  </div>
+  
+  <!-- VIEW -->
+  <div class="screen" id="screen-view">
+    <button class="back" onclick="goto('home')">← буцах</button>
+    <div class="h2">Гүйцэтгэлийн мэдээлэл</div>
+    <div class="h2-sub" id="view-sub">— · — оны —-р сар</div>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Сарын даалгавар</div>
+        <div class="stat-value" id="v-daalgavar">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Өссөн дүн</div>
+        <div class="stat-value" id="v-osson">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Үйлдвэрлэл</div>
+        <div class="stat-value" id="v-uildverlel">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Хийсэн өдөр</div>
+        <div class="stat-value" id="v-odor">—</div>
+      </div>
+    </div>
+    
+    <div class="advice">
+      <div class="advice-tag">ЗӨВЛӨГӨӨ</div>
+      <div class="advice-h">Сарын төлөвлөгөөгөө 100% биелүүлэхийн тулд:</div>
+      <div class="advice-body">
+        Үлдсэн <b style="color:var(--c-card-warm)" id="v-uld-odor">—</b> өдрийн турш өдөр бүр<br>
+        <span class="advice-big" id="v-target">—</span> ширхэг үйлдвэрлэх ёстой
+      </div>
+    </div>
+    
+    <div class="lastday" id="v-lastday-block" style="display:none">
+      <div class="lastday-h" id="v-lastday-date">Сүүлийн өдөр</div>
+      <div class="lastday-row"><span>Гүйцэтгэл</span><b id="v-ld-guits">—</b></div>
+      <div class="lastday-row"><span>Биелэлт</span><b id="v-ld-biel">—</b></div>
+      <div class="lastday-row"><span>Гарц</span><b id="v-ld-garts">—</b></div>
+      <div class="lastday-row"><span>Чанар</span><b id="v-ld-chanar">—</b></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">Амжилттай хадгалагдлаа</div>
+
+<script>
+  // ====================================================================
+  // CONFIG — n8n webhook URL-аа ЭНД оруулна уу
+  // ====================================================================
+  const API_URL = 'https://YOUR_N8N_DOMAIN/webhook/factory-api';
+  // Жишээ: 'https://munkhtuya.app.n8n.cloud/webhook/factory-api'
+  
+  // ====================================================================
+  // API helper
+  // ====================================================================
+  async function api(action, payload = {}) {
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...payload })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      console.error('API error:', e);
+      return { ok: false, error: 'Сүлжээний алдаа: ' + e.message };
+    }
+  }
+  
+  // ===== Тоо цэвэрлэх (leading zero, бус тэмдэгт) =====
+  function cleanNum(el, allowDecimal=false) {
+    let v = el.value;
+    // зөвхөн тоо болон цэг үлдээх
+    v = v.replace(allowDecimal ? /[^\d.]/g : /\D/g, '');
+    // Зөвхөн нэг цэг
+    if (allowDecimal) {
+      const parts = v.split('.');
+      if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+    }
+    // Эхний "0..."-г хасах ("0" эсвэл "0.x"-аас бусад)
+    if (v.length > 1 && v[0] === '0' && v[1] !== '.') {
+      v = v.replace(/^0+/, '') || '0';
+      if (v === '0' && el.value.length > 1) v = '';
+    }
+    el.value = v;
+  }
+  
+  function goto(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = name === 'home' ? 
+      (currentMode === 'admin' ? 'screen-home-admin' : 'screen-home') :
+      'screen-' + name;
+    document.getElementById(target).classList.add('active');
+    window.scrollTo(0, 0);
+    
+    // View дэлгэц нээх үед автомат API дуудах
+    if (name === 'view') loadView();
+  }
+  
+  let currentMode = 'worker'; // worker | admin
+  function toggleMode() {
+    currentMode = currentMode === 'worker' ? 'admin' : 'worker';
+    document.getElementById('modeBtn').textContent = 
+      currentMode === 'worker' ? 'ажилтны QR' : 'админ QR';
+    updateHeader();
+    goto('home');
+  }
+  
+  function updateHeader() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    
+    if (currentMode === 'admin') {
+      document.getElementById('tseh-name').textContent = 'Алдаа залруулах';
+      document.getElementById('kompani-meta').textContent = `Админ · ${yyyy} оны ${parseInt(mm)}-р сар`;
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      const tseh = params.get('tseh') || '';
+      if (!tseh) {
+        document.getElementById('tseh-name').textContent = 'Цех тодорхойгүй';
+        document.getElementById('kompani-meta').textContent = 'URL-д ?tseh=ЦЕХ_НЭР заавал байх';
+        return;
+      }
+      document.getElementById('tseh-name').textContent = tseh;
+      document.getElementById('kompani-meta').textContent = `${yyyy} оны ${parseInt(mm)}-р сар`;
+      document.getElementById('view-sub').textContent = `${tseh} · ${yyyy} оны ${parseInt(mm)}-р сар`;
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const dd = String(today.getDate()).padStart(2,'0');
+    document.getElementById('submit-date').value = `${yyyy}-${mm}-${dd}`;
+    
+    // URL parameter-аас режим
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'admin') {
+      currentMode = 'admin';
+      document.getElementById('modeBtn').textContent = 'админ QR';
+    }
+    updateHeader();
+    if (currentMode === 'admin') goto('home');
+  });
+  
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+  
+  async function submitForm() {
+    const guits = document.getElementById('f-guits').value;
+    if (!guits) {
+      showToast('Гүйцэтгэлээ заавал бөглөнө үү');
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const tseh = params.get('tseh') || '';
+    const date = document.getElementById('submit-date').value;
+    
+    const btn = event.target;
+    btn.textContent = 'Хадгалж байна...';
+    btn.disabled = true;
+    
+    const res = await api('submit', {
+      tseh: tseh, date: date,
+      guits: guits,
+      garts: document.getElementById('f-garts').value,
+      mashin: document.getElementById('f-mashin').value,
+      chanar: document.getElementById('f-chanar').value,
+      hun: document.getElementById('f-hun').value,
+      uld: document.getElementById('f-uld').value,
+      orchin: document.getElementById('f-orchin').value,
+      tailbar: document.getElementById('f-tailbar').value
+    });
+    
+    btn.textContent = 'Хадгалах';
+    btn.disabled = false;
+    
+    if (!res.ok) {
+      showToast(res.error || 'Алдаа гарлаа');
+      return;
+    }
+    
+    document.getElementById('r-day-pct').textContent = res.odor_biel_pct + '%';
+    document.getElementById('r-day-pct').className = 'stat-value ' +
+      (res.odor_biel_pct >= 100 ? 'success' : (res.odor_biel_pct >= 95 ? 'warn' : ''));
+    document.getElementById('r-month-pct').textContent = res.uildverlel_pct + '%';
+    document.getElementById('r-osson').textContent =
+      res.osson_dun.toLocaleString() + ' / ' + res.sarin_daalgavar.toLocaleString();
+    
+    // Submit form-ыг цэвэрлэх дараагийн удаагийн тулд
+    ['f-guits','f-garts','f-mashin','f-chanar','f-hun','f-uld','f-orchin','f-tailbar']
+      .forEach(id => document.getElementById(id).value = '');
+    
+    goto('success');
+  }
+  
+  // ===== View дэлгэц ачаалах =====
+  async function loadView() {
+    const params = new URLSearchParams(window.location.search);
+    const tseh = params.get('tseh') || '';
+    const res = await api('view', { tseh: tseh });
+    if (!res.ok) {
+      showToast(res.error || 'Алдаа');
+      return;
+    }
+    document.getElementById('v-daalgavar').textContent = res.sarin_daalgavar.toLocaleString();
+    document.getElementById('v-osson').textContent = res.osson_dun.toLocaleString();
+    document.getElementById('v-uildverlel').textContent = res.uildverlel_pct + '%';
+    const uvElem = document.getElementById('v-uildverlel');
+    uvElem.className = 'stat-value ' +
+      (res.uildverlel_pct >= 90 ? 'success' : (res.uildverlel_pct >= 50 ? 'warn' : ''));
+    document.getElementById('v-odor').textContent = res.odor_ajillsan + ' / ' + res.odor_niit;
+    document.getElementById('v-uld-odor').textContent = res.odor_uld;
+    document.getElementById('v-target').textContent = res.target_daalgavar.toLocaleString();
+    
+    if (res.last_day) {
+      document.getElementById('v-lastday-block').style.display = 'block';
+      document.getElementById('v-lastday-date').textContent = 'Сүүлийн өдөр · ' + res.last_day.date;
+      document.getElementById('v-ld-guits').textContent = res.last_day.guits.toLocaleString();
+      document.getElementById('v-ld-biel').textContent = res.last_day.biel_pct + '%';
+      document.getElementById('v-ld-biel').style.color =
+        res.last_day.biel_pct >= 100 ? 'var(--c-success)' :
+        (res.last_day.biel_pct >= 95 ? 'var(--c-warn)' : 'var(--c-bad)');
+      document.getElementById('v-ld-garts').textContent = res.last_day.garts_pct + '%';
+      document.getElementById('v-ld-chanar').textContent = res.last_day.chanar_pct + '%';
+    } else {
+      document.getElementById('v-lastday-block').style.display = 'none';
+    }
+  }
+  
+  // ===== Admin (засварын QR) =====
+  async function loadAdminDates() {
+    const tseh = document.getElementById('admin-tseh').value;
+    const dateSel = document.getElementById('admin-date');
+    dateSel.innerHTML = '<option value="">— өдрөө сонгох —</option>';
+    document.getElementById('admin-form').style.display = 'none';
+    if (!tseh) {
+      document.getElementById('admin-date-field').style.display = 'none';
+      return;
+    }
+    const res = await api('edit_dates', { tseh: tseh });
+    if (!res.ok) {
+      showToast(res.error || 'Алдаа');
+      return;
+    }
+    if (!res.dates || res.dates.length === 0) {
+      document.getElementById('admin-date-field').style.display = 'none';
+      showToast(tseh + ' цехийн өгөгдөл олдсонгүй');
+      return;
+    }
+    res.dates.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d; o.textContent = d;
+      dateSel.appendChild(o);
+    });
+    document.getElementById('admin-date-field').style.display = 'block';
+  }
+  
+  async function loadAdminData() {
+    const tseh = document.getElementById('admin-tseh').value;
+    const date = document.getElementById('admin-date').value;
+    if (!tseh || !date) {
+      document.getElementById('admin-form').style.display = 'none';
+      return;
+    }
+    const res = await api('edit_load', { tseh: tseh, date: date });
+    if (!res.ok) {
+      showToast(res.error || 'Алдаа');
+      return;
+    }
+    document.getElementById('e-guits').value = res.guits || '';
+    document.getElementById('e-garts').value = res.garts || '';
+    document.getElementById('e-mashin').value = res.mashin || '';
+    document.getElementById('e-chanar').value = res.chanar || '';
+    document.getElementById('e-hun').value = res.hun || '';
+    document.getElementById('e-uld').value = res.uld || '';
+    document.getElementById('e-orchin').value = res.orchin || '';
+    document.getElementById('e-tailbar').value = res.tailbar || '';
+    document.getElementById('admin-form').style.display = 'block';
+  }
+  
+  async function saveEdit() {
+    const tseh = document.getElementById('admin-tseh').value;
+    const date = document.getElementById('admin-date').value;
+    if (!tseh || !date) return;
+    
+    const btn = event.target;
+    btn.textContent = 'Хадгалж байна...';
+    btn.disabled = true;
+    
+    const res = await api('edit_save', {
+      tseh: tseh, date: date,
+      guits: document.getElementById('e-guits').value,
+      garts: document.getElementById('e-garts').value,
+      mashin: document.getElementById('e-mashin').value,
+      chanar: document.getElementById('e-chanar').value,
+      hun: document.getElementById('e-hun').value,
+      uld: document.getElementById('e-uld').value,
+      orchin: document.getElementById('e-orchin').value,
+      tailbar: document.getElementById('e-tailbar').value,
+      reason: 'Алдаа залруулах (web)'
+    });
+    
+    btn.textContent = 'Засвар хадгалах';
+    btn.disabled = false;
+    
+    if (!res.ok) {
+      showToast(res.error || 'Алдаа');
+      return;
+    }
+    showToast('Амжилттай өөрчлөгдлөө');
+    setTimeout(() => {
+      document.getElementById('admin-tseh').value = '';
+      document.getElementById('admin-date-field').style.display = 'none';
+      document.getElementById('admin-form').style.display = 'none';
+    }, 1500);
+  }
+</script>
+</body>
+</html>
