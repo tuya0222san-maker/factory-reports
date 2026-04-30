@@ -61,7 +61,13 @@
   textarea.input { resize: vertical; min-height: 100px; line-height: 1.5; }
   .input:focus, .select:focus, textarea.input:focus { outline: none; border-color: var(--c-accent);
     background: #FFFFFF; box-shadow: 0 0 0 3px rgba(107,74,43,0.10); }
-  .input[inputmode="numeric"], .input[inputmode="decimal"] { font-feature-settings: "tnum"; font-size: 17px; }
+  .input[inputmode="numeric"], .input[inputmode="decimal"] {
+    font-family: 'Calibri', 'Trebuchet MS', sans-serif;
+    font-feature-settings: "tnum";
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
   .input::placeholder { color: #BDB29A; font-weight: 400; }
   .btn { display: block; width: 100%; padding: 16px 20px; border: 1px solid var(--c-accent);
     border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
@@ -304,6 +310,8 @@
       <input class="input" type="month" id="setup-month"></div>
     <div class="field"><label class="label">Сарын даалгавар <span class="label-suffix">— ширхэг</span></label>
       <input class="input" type="text" inputmode="numeric" id="s-daalgavar" oninput="cleanNum(this)"></div>
+    <div class="field"><label class="label">Эхний үлдэгдэл <span class="label-suffix">— ширхэг</span></label>
+      <input class="input" type="text" inputmode="numeric" id="s-ehnii" oninput="cleanNum(this)"></div>
     <div class="field"><label class="label">Ажиллах өдөр <span class="label-suffix">— тоо</span></label>
       <input class="input" type="text" inputmode="numeric" id="s-odor" oninput="cleanNum(this)"></div>
     <button class="btn btn-primary" onclick="saveSetup()">Хадгалах</button>
@@ -492,8 +500,8 @@
     const date = document.getElementById('submit-date-text').value;
     const btn = event.target;
     btn.textContent = 'Хадгалж байна...'; btn.disabled = true;
-    const res = await api('submit', {
-      tseh: currentTseh, date: date, kind: 'text',
+    const res = await api('submit_text', {
+      tseh: currentTseh, date: date,
       tailbar: tailbar
     });
     btn.textContent = 'Хадгалах'; btn.disabled = false;
@@ -602,6 +610,7 @@
     const tseh = document.getElementById('setup-tseh').value;
     const month = document.getElementById('setup-month').value;
     const daalgavar = document.getElementById('s-daalgavar').value;
+    const ehnii = document.getElementById('s-ehnii').value;
     const odor = document.getElementById('s-odor').value;
     if (!tseh) { showToast('Цехээ сонгоно уу'); return; }
     if (!month) { showToast('Сараа сонгоно уу'); return; }
@@ -613,6 +622,7 @@
       tseh: tseh,
       month: month,
       daalgavar: daalgavar,
+      ehnii: ehnii || '0',
       odor: odor
     });
     btn.textContent = 'Хадгалах'; btn.disabled = false;
@@ -621,6 +631,7 @@
     setTimeout(() => {
       document.getElementById('setup-tseh').value = '';
       document.getElementById('s-daalgavar').value = '';
+      document.getElementById('s-ehnii').value = '';
       document.getElementById('s-odor').value = '';
     }, 1500);
   }
