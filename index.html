@@ -609,10 +609,11 @@
     if (!odor) { showToast('Ажиллах өдрөө бөглөнө үү'); return; }
     const btn = event.target;
     btn.textContent = 'Хадгалж байна...'; btn.disabled = true;
-    const res = await api('monthly_setup', {
-      tseh: tseh, month: month,
-      sarin_daalgavar: daalgavar,
-      ajillah_odor: odor
+    const res = await api('setup_save', {
+      tseh: tseh,
+      month: month,
+      daalgavar: daalgavar,
+      odor: odor
     });
     btn.textContent = 'Хадгалах'; btn.disabled = false;
     if (!res.ok) { showToast(res.error || 'Алдаа'); return; }
