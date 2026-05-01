@@ -324,45 +324,38 @@
   // CONFIG — n8n webhook URL
   const API_URL = 'https://munkhtuya.app.n8n.cloud/webhook/factory-api';
 
-  const STRUCTURED_WORKSHOPS = [
-    'Ангилах','Угаах','Хялгас ялгах','Будах','Ээрэх 26.2','Ээрэх 14.5/1',
-    'Нэхэх','Нэхэхийн гүйцэтгэн боловсруулалт','Нэхэхийн бэлэн бүтээгдэхүүн','Принт',
-    'Гар сүлжих','Автомат сүлжих','Оёх','ОЁХ 409-р анги','Сүлжихийн гүйцэтгэн боловсруулалт',
-    'Зөөлөн оёдол','Ширмэл оёдол','Дорнод ноос'
-  ];
-  const TEXT_WORKSHOPS = ['Дулаан сантехникийн алба','Цахилгаан кип автоматикийн алба','Механик','Гуанз'];
-  const ALL_WORKSHOPS = [...STRUCTURED_WORKSHOPS, ...TEXT_WORKSHOPS];
-  const isTextOnly = (t) => TEXT_WORKSHOPS.includes(t);
-  
-  async function api(action, payload = {}) {
-    if (API_URL.includes('YOUR_N8N_DOMAIN')) {
-      const msg = 'API_URL тохируулаагүй байна. index.html-н 317-р мөрөнд n8n webhook URL-аа оруулна уу.';
-      console.error(msg);
-      alert('⚠️ ' + msg);
-      return { ok: false, error: msg };
+async function api(action, payload = {}) {
+  if (API_URL.includes('munkhtuya.app.n8n.cloud')) {
+    alert('⚠️ API_URL тохируулаагүй байна. index.html-н дээд хэсэгт n8n webhook URL-аа оруулна уу.');
+    return { ok: false, error: 'API_URL not configured' };
+  }
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${text.substring(0, 300) || '(хоосон хариу)'}`);
+    }
+    if (!text || !text.trim()) {
+      throw new Error('Сервер хоосон хариу буцаалаа. n8n Executions log дотор алдаатай node байгаа эсэхийг шалгана уу (workflow Active эсэх, credentials холбогдсон эсэх, "Respond to Webhook" node хүртэл явсан эсэх).');
     }
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, ...payload })
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error('HTTP ' + res.status + (text ? ': ' + text.substring(0, 200) : ''));
-      }
-      return await res.json();
-    } catch (e) {
-      console.error('API error:', e);
-      const errMsg = e.message.includes('Failed to fetch')
-        ? 'Серверт холбогдож чадсангүй. Webhook URL зөв эсэх + n8n workflow Active эсэхийг шалгана уу.'
-        : 'Сүлжээний алдаа: ' + e.message;
-      alert('⚠️ ' + errMsg);
-      return { ok: false, error: errMsg };
+      return JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error(`JSON биш хариу: ${text.substring(0, 200)}`);
     }
+  } catch (e) {
+    console.error('API error:', e);
+    const errMsg = e.message.includes('Failed to fetch')
+      ? 'Серверт холбогдож чадсангүй. Webhook URL зөв эсэх + n8n workflow Active эсэхийг шалгана уу.'
+      : e.message;
+    alert('⚠️ ' + errMsg);
+    return { ok: false, error: errMsg };
   }
-  
-  function cleanNum(el, allowDecimal=false) {
+}
     let v = el.value;
     v = v.replace(allowDecimal ? /[^\d.]/g : /\D/g, '');
     if (allowDecimal) {
