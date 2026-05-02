@@ -133,14 +133,17 @@
   <div class="hdr-tag">ҮЙЛДВЭРИЙН ӨДРИЙН ТАЙЛАН</div>
   <div class="hdr-tseh" id="tseh-name">—</div>
   <div class="hdr-meta" id="kompani-meta">—</div>
-  <div id="user-bar" style="display:none; margin-top:12px; padding:8px 14px; background: var(--c-card); border-radius: 6px; display:none; align-items:center; justify-content:space-between; gap:10px;">
-    <div style="font-size:13px; color: var(--c-muted);"><span style="font-weight:700; color: var(--c-accent);" id="user-name">—</span> <span id="user-expires"></span></div>
-    <button onclick="doLogout()" style="background: transparent; border: 1px solid var(--c-border); color: var(--c-muted); padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">Гарах</button>
+  <div id="user-bar" style="display:none; margin-top:14px; padding:10px 14px; background: var(--c-card); border-radius: 6px; align-items:center; justify-content:space-between; gap:10px; border: 1px solid var(--c-border);">
+    <div style="font-size:13px; color: var(--c-muted);">
+      <span style="font-weight:700; color: var(--c-accent); font-family: 'Calibri', sans-serif;" id="user-name">—</span>
+      <span id="user-expires" style="font-family: 'Calibri', sans-serif;"></span>
+    </div>
+    <button onclick="doLogout()" style="background: transparent; border: 1px solid var(--c-border); color: var(--c-muted); padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: inherit;">Гарах</button>
   </div>
 </header>
 
 <main class="page">
-  <!-- LOGIN -->
+  <!-- LOGIN (ажилтны QR) -->
   <div class="screen active" id="screen-login">
     <div class="h2">Нэвтрэх</div>
     <div class="h2-sub">Ажилтны нэр болон PIN кодоо оруулна уу</div>
@@ -153,7 +156,7 @@
       <input class="input" type="text" inputmode="numeric" maxlength="4" id="login-pin" autocomplete="off" placeholder="••••" oninput="cleanNum(this)">
     </div>
     <button class="btn btn-primary" onclick="doLogin()">Нэвтрэх</button>
-    <div id="login-info" style="margin-top:14px; text-align:center; color: var(--c-muted); font-size:13px;"></div>
+    <div id="login-msg" style="margin-top:14px; text-align:center; font-size:13px; min-height: 18px;"></div>
   </div>
 
   <!-- HOME (ажилтны QR) -->
@@ -343,7 +346,7 @@
 
 <script>
   // CONFIG — n8n webhook URL
-  const API_URL = 'https://munkhtuya.app.n8n.cloud/webhook/factory-api';
+  const API_URL = 'https://YOUR_N8N_DOMAIN/webhook/factory-api';
 
   const STRUCTURED_WORKSHOPS = [
     'Ангилах','Угаах','Хялгас ялгах','Будах','Ээрэх 26.2','Ээрэх 14.5/1',
@@ -372,12 +375,15 @@
         const text = await res.text().catch(() => '');
         throw new Error('HTTP ' + res.status + (text ? ': ' + text.substring(0, 200) : ''));
       }
-      const data = await res.json();
-      // Token хугацаа дууссан бол гарга
-      if (data && data.error && (data.error.indexOf('Token') >= 0 || data.error.indexOf('Сэшн') >= 0)) {
-        if (currentMode !== 'admin') {
-          alert('Таны нэвтрэлтийн хугацаа дууссан. Дахин нэвтэрнэ үү.');
+      const text = await res.text();
+      if (!text) throw new Error('Серверээс хоосон хариу ирлээ');
+      const data = JSON.parse(text);
+      // Token хугацаа дууссан/буруу бол гарга
+      if (data && !data.ok && data.error && currentMode !== 'admin') {
+        if (data.error.indexOf('хүчингүй') >= 0 || data.error.indexOf('хугацаа дууссан') >= 0 || data.error.indexOf('Нэвтрэлт шаардлагатай') >= 0) {
+          alert(data.error);
           doLogout();
+          return data;
         }
       }
       return data;
@@ -395,6 +401,7 @@
   // SESSION / LOGIN
   // ============================================================
   const SESSION_KEY = 'factory_session';
+  let _expiryTimer = null;
   
   function getSession() {
     try {
@@ -411,21 +418,20 @@
   
   function setSession(s) { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
   function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
-  function getToken() {
-    const s = getSession();
-    return s ? s.token : '';
-  }
+  function getToken() { const s = getSession(); return s ? s.token : ''; }
   
   async function doLogin() {
     const name = document.getElementById('login-name').value.trim();
     const pin = document.getElementById('login-pin').value.trim();
-    const info = document.getElementById('login-info');
-    if (!name || !pin) { info.textContent = 'Нэр болон PIN заавал хийнэ үү'; info.style.color = 'var(--c-bad)'; return; }
-    if (pin.length !== 4) { info.textContent = 'PIN яг 4 оронтой байх ёстой'; info.style.color = 'var(--c-bad)'; return; }
+    const msg = document.getElementById('login-msg');
+    msg.style.color = 'var(--c-bad)';
+    
+    if (!name) { msg.textContent = 'Нэрээ оруулна уу'; return; }
+    if (!pin || pin.length !== 4) { msg.textContent = 'PIN яг 4 оронтой байх ёстой'; return; }
     
     const btn = event.target;
     btn.textContent = 'Шалгаж байна...'; btn.disabled = true;
-    info.textContent = '';
+    msg.textContent = '';
     
     try {
       const res = await fetch(API_URL, {
@@ -433,13 +439,14 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'login', name: name, pin: pin })
       });
-      const data = await res.json();
+      const text = await res.text();
+      if (!text) throw new Error('Серверээс хариу ирсэнгүй');
+      const data = JSON.parse(text);
       
       btn.textContent = 'Нэвтрэх'; btn.disabled = false;
       
       if (!data.ok) {
-        info.textContent = data.error || 'Нэвтрэлт амжилтгүй';
-        info.style.color = 'var(--c-bad)';
+        msg.textContent = data.error || 'Нэвтрэлт амжилтгүй';
         return;
       }
       
@@ -453,20 +460,20 @@
       
       document.getElementById('login-pin').value = '';
       document.getElementById('login-name').value = '';
-      info.textContent = '';
+      msg.textContent = '';
       
       updateUserBar();
       goto('home');
     } catch (e) {
       btn.textContent = 'Нэвтрэх'; btn.disabled = false;
-      info.textContent = 'Сүлжээний алдаа: ' + e.message;
-      info.style.color = 'var(--c-bad)';
+      msg.textContent = 'Сүлжээний алдаа: ' + e.message;
     }
   }
   
   function doLogout() {
     clearSession();
-    updateUserBar();
+    if (_expiryTimer) { clearInterval(_expiryTimer); _expiryTimer = null; }
+    document.getElementById('user-bar').style.display = 'none';
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-login').classList.add('active');
   }
@@ -478,19 +485,18 @@
     bar.style.display = 'flex';
     document.getElementById('user-name').textContent = s.user_name + (s.user_role ? ' · ' + s.user_role : '');
     
-    // Show countdown to expiry
-    const updateExpiry = () => {
+    const tick = () => {
       const sNow = getSession();
-      if (!sNow) { document.getElementById('user-expires').textContent = ''; return; }
+      if (!sNow) { doLogout(); return; }
       const ms = new Date(sNow.expires_at) - new Date();
       if (ms <= 0) { doLogout(); return; }
       const mins = Math.floor(ms / 60000);
       const secs = Math.floor((ms % 60000) / 1000);
       document.getElementById('user-expires').textContent = ' · ' + mins + ':' + String(secs).padStart(2,'0');
     };
-    updateExpiry();
-    if (window._expiryTimer) clearInterval(window._expiryTimer);
-    window._expiryTimer = setInterval(updateExpiry, 1000);
+    tick();
+    if (_expiryTimer) clearInterval(_expiryTimer);
+    _expiryTimer = setInterval(tick, 1000);
   }
   
   function cleanNum(el, allowDecimal=false) {
@@ -581,13 +587,13 @@
     if (params.get('mode') === 'admin') {
       currentMode = 'admin';
       updateHeader();
-      // Админд login шаардлагагүй (URL-аар хамгаалагдсан)
+      // Админ нэвтрэх шаардлагагүй
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-home-admin').classList.add('active');
     } else {
       currentTseh = params.get('tseh') || '';
       updateHeader();
-      // Хэрэв нэвтэрсэн байвал шууд home, эс бөгөөс login
+      // Хэрэв нэвтэрсэн хүчинтэй сэшнтэй бол шууд home, эс бөгөөс login
       const sess = getSession();
       if (sess) {
         updateUserBar();
