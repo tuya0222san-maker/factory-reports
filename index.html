@@ -133,11 +133,31 @@
   <div class="hdr-tag">ҮЙЛДВЭРИЙН ӨДРИЙН ТАЙЛАН</div>
   <div class="hdr-tseh" id="tseh-name">—</div>
   <div class="hdr-meta" id="kompani-meta">—</div>
+  <div id="user-bar" style="display:none; margin-top:12px; padding:8px 14px; background: var(--c-card); border-radius: 6px; display:none; align-items:center; justify-content:space-between; gap:10px;">
+    <div style="font-size:13px; color: var(--c-muted);"><span style="font-weight:700; color: var(--c-accent);" id="user-name">—</span> <span id="user-expires"></span></div>
+    <button onclick="doLogout()" style="background: transparent; border: 1px solid var(--c-border); color: var(--c-muted); padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">Гарах</button>
+  </div>
 </header>
 
 <main class="page">
+  <!-- LOGIN -->
+  <div class="screen active" id="screen-login">
+    <div class="h2">Нэвтрэх</div>
+    <div class="h2-sub">Ажилтны нэр болон PIN кодоо оруулна уу</div>
+    <div class="field">
+      <label class="label">Нэр</label>
+      <input class="input" type="text" id="login-name" autocomplete="off" placeholder="Жнь: Болд">
+    </div>
+    <div class="field">
+      <label class="label">PIN <span class="label-suffix">— 4 оронтой тоо</span></label>
+      <input class="input" type="text" inputmode="numeric" maxlength="4" id="login-pin" autocomplete="off" placeholder="••••" oninput="cleanNum(this)">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Нэвтрэх</button>
+    <div id="login-info" style="margin-top:14px; text-align:center; color: var(--c-muted); font-size:13px;"></div>
+  </div>
+
   <!-- HOME (ажилтны QR) -->
-  <div class="screen active" id="screen-home">
+  <div class="screen" id="screen-home">
     <div class="actions">
       <button class="action" onclick="goto('submit')">
         <div class="action-num">I</div>
@@ -337,7 +357,7 @@
   
   async function api(action, payload = {}) {
     if (API_URL.includes('YOUR_N8N_DOMAIN')) {
-      const msg = 'API_URL тохируулаагүй байна. index.html-н 317-р мөрөнд n8n webhook URL-аа оруулна уу.';
+      const msg = 'API_URL тохируулаагүй байна. index.html-н дээд хэсэгт n8n webhook URL-аа оруулна уу.';
       console.error(msg);
       alert('⚠️ ' + msg);
       return { ok: false, error: msg };
@@ -346,13 +366,21 @@
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, ...payload })
+        body: JSON.stringify({ action, token: getToken(), ...payload })
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         throw new Error('HTTP ' + res.status + (text ? ': ' + text.substring(0, 200) : ''));
       }
-      return await res.json();
+      const data = await res.json();
+      // Token хугацаа дууссан бол гарга
+      if (data && data.error && (data.error.indexOf('Token') >= 0 || data.error.indexOf('Сэшн') >= 0)) {
+        if (currentMode !== 'admin') {
+          alert('Таны нэвтрэлтийн хугацаа дууссан. Дахин нэвтэрнэ үү.');
+          doLogout();
+        }
+      }
+      return data;
     } catch (e) {
       console.error('API error:', e);
       const errMsg = e.message.includes('Failed to fetch')
@@ -361,6 +389,108 @@
       alert('⚠️ ' + errMsg);
       return { ok: false, error: errMsg };
     }
+  }
+  
+  // ============================================================
+  // SESSION / LOGIN
+  // ============================================================
+  const SESSION_KEY = 'factory_session';
+  
+  function getSession() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (s.expires_at && new Date(s.expires_at) < new Date()) {
+        sessionStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+      return s;
+    } catch (e) { return null; }
+  }
+  
+  function setSession(s) { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+  function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
+  function getToken() {
+    const s = getSession();
+    return s ? s.token : '';
+  }
+  
+  async function doLogin() {
+    const name = document.getElementById('login-name').value.trim();
+    const pin = document.getElementById('login-pin').value.trim();
+    const info = document.getElementById('login-info');
+    if (!name || !pin) { info.textContent = 'Нэр болон PIN заавал хийнэ үү'; info.style.color = 'var(--c-bad)'; return; }
+    if (pin.length !== 4) { info.textContent = 'PIN яг 4 оронтой байх ёстой'; info.style.color = 'var(--c-bad)'; return; }
+    
+    const btn = event.target;
+    btn.textContent = 'Шалгаж байна...'; btn.disabled = true;
+    info.textContent = '';
+    
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', name: name, pin: pin })
+      });
+      const data = await res.json();
+      
+      btn.textContent = 'Нэвтрэх'; btn.disabled = false;
+      
+      if (!data.ok) {
+        info.textContent = data.error || 'Нэвтрэлт амжилтгүй';
+        info.style.color = 'var(--c-bad)';
+        return;
+      }
+      
+      setSession({
+        token: data.token,
+        user_id: data.user_id,
+        user_name: data.user_name,
+        user_role: data.user_role,
+        expires_at: data.expires_at
+      });
+      
+      document.getElementById('login-pin').value = '';
+      document.getElementById('login-name').value = '';
+      info.textContent = '';
+      
+      updateUserBar();
+      goto('home');
+    } catch (e) {
+      btn.textContent = 'Нэвтрэх'; btn.disabled = false;
+      info.textContent = 'Сүлжээний алдаа: ' + e.message;
+      info.style.color = 'var(--c-bad)';
+    }
+  }
+  
+  function doLogout() {
+    clearSession();
+    updateUserBar();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-login').classList.add('active');
+  }
+  
+  function updateUserBar() {
+    const s = getSession();
+    const bar = document.getElementById('user-bar');
+    if (!s) { bar.style.display = 'none'; return; }
+    bar.style.display = 'flex';
+    document.getElementById('user-name').textContent = s.user_name + (s.user_role ? ' · ' + s.user_role : '');
+    
+    // Show countdown to expiry
+    const updateExpiry = () => {
+      const sNow = getSession();
+      if (!sNow) { document.getElementById('user-expires').textContent = ''; return; }
+      const ms = new Date(sNow.expires_at) - new Date();
+      if (ms <= 0) { doLogout(); return; }
+      const mins = Math.floor(ms / 60000);
+      const secs = Math.floor((ms % 60000) / 1000);
+      document.getElementById('user-expires').textContent = ' · ' + mins + ':' + String(secs).padStart(2,'0');
+    };
+    updateExpiry();
+    if (window._expiryTimer) clearInterval(window._expiryTimer);
+    window._expiryTimer = setInterval(updateExpiry, 1000);
   }
   
   function cleanNum(el, allowDecimal=false) {
@@ -450,11 +580,22 @@
     const params = new URLSearchParams(window.location.search);
     if (params.get('mode') === 'admin') {
       currentMode = 'admin';
+      updateHeader();
+      // Админд login шаардлагагүй (URL-аар хамгаалагдсан)
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-home-admin').classList.add('active');
     } else {
       currentTseh = params.get('tseh') || '';
+      updateHeader();
+      // Хэрэв нэвтэрсэн байвал шууд home, эс бөгөөс login
+      const sess = getSession();
+      if (sess) {
+        updateUserBar();
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-home').classList.add('active');
+      }
+      // Эс бөгөөс screen-login нь "active" classтай тул анхдагчаар харагдана
     }
-    updateHeader();
-    if (currentMode === 'admin') goto('home');
   });
   
   function showToast(msg) {
