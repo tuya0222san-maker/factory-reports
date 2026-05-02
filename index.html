@@ -97,7 +97,7 @@
   .stat { background: var(--c-card); border: 1px solid var(--c-border-soft); border-radius: 6px; padding: 14px; }
   .stat-label { font-size: 10px; color: var(--c-muted); letter-spacing: 0.1em; font-weight: 700;
     text-transform: uppercase; margin-bottom: 4px; }
-  .stat-value { font-family: 'Calibri', 'Trebuchet MS', sans-serif; font-size: 30px; font-weight: 700;
+  .stat-value { font-family: 'Calibri', 'Trebuchet MS', sans-serif; font-size: 24px; font-weight: 700;
     color: var(--c-accent); letter-spacing: -0.02em; line-height: 1; }
   .stat-value.success { color: var(--c-success); }
   .stat-value.warn { color: var(--c-warn); }
@@ -488,8 +488,8 @@
     document.getElementById('r-day-pct').className = 'stat-value ' +
       (res.odor_biel_pct >= 100 ? 'success' : (res.odor_biel_pct >= 95 ? 'warn' : ''));
     document.getElementById('r-month-pct').textContent = (res.uildverlel_pct || 0) + '%';
+    document.getElementById('r-odor-ajillsan').textContent = (res.odor_ajillsan || 0) + ' / ' + (res.odor_niit || 0);
     document.getElementById('r-osson').textContent =
-    document.getElementById('r-odor-ajillsan').textContent = (res.odor_ajillsan || 0) + ' / ' + (res.odor_niit || 0) + ' хоног';
       (res.osson_dun || 0).toLocaleString() + ' / ' + (res.sarin_daalgavar || 0).toLocaleString();
     ['f-guits','f-garts','f-mashin','f-chanar','f-hun','f-uld','f-orchin','f-tailbar']
       .forEach(id => document.getElementById(id).value = '');
