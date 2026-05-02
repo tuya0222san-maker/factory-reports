@@ -153,7 +153,7 @@
     </div>
     <div class="field">
       <label class="label">PIN <span class="label-suffix">— 4 оронтой тоо</span></label>
-      <input class="input" type="text" inputmode="numeric" maxlength="4" id="login-pin" autocomplete="off" placeholder="••••" oninput="cleanNum(this)">
+      <input class="input" type="text" inputmode="numeric" maxlength="4" id="login-pin" autocomplete="off" placeholder="••••" oninput="cleanPin(this)">
     </div>
     <button class="btn btn-primary" onclick="doLogin()">Нэвтрэх</button>
     <div id="login-msg" style="margin-top:14px; text-align:center; font-size:13px; min-height: 18px;"></div>
@@ -511,6 +511,11 @@
       if (v === '0' && el.value.length > 1) v = '';
     }
     el.value = v;
+  }
+  
+  function cleanPin(el) {
+    // PIN-д leading zero хэрэгтэй (0207 → 0207 хэвээр үлдэнэ)
+    el.value = el.value.replace(/\D/g, '').slice(0, 4);
   }
   
   let currentMode = 'worker';
